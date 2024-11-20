@@ -15,16 +15,26 @@ check_ubuntu_version() {
     if ! command_exists lsb_release; then
         echo "Error: lsb_release command not found. Please install lsb-release package."
         exit 1
-    }
+    fi
     
     version=$(lsb_release -cs)
-    supported_versions=("noble" "jammy" "focal" "mantic")
+    supported=0
     
-    if [[ ! " ${supported_versions[@]} " =~ " ${version} " ]]; then
+    # List of supported Ubuntu versions
+    for v in "noble" "jammy" "focal" "mantic"; do
+        if [ "$version" = "$v" ]; then
+            supported=1
+            break
+        fi
+    done
+
+    if [ "$supported" -eq 0 ]; then
         echo "Error: Ubuntu version '${version}' is not supported."
-        echo "Supported versions are: ${supported_versions[*]}"
+        echo "Supported versions are: noble (24.04), jammy (22.04), focal (20.04), mantic (23.10)"
         exit 1
-    }
+    fi
+    
+    echo "Detected Ubuntu version: ${version}"
 }
 
 # Remove old versions of Docker
