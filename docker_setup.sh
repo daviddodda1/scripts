@@ -80,6 +80,21 @@ install_docker() {
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
+# Install Docker Compose
+install_docker_compose() {
+    echo "Installing Docker Compose..."
+    COMPOSE_VERSION="v2.24.6"
+    sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+    
+    # Create symbolic link for docker compose v2 style command
+    sudo ln -sf /usr/local/bin/docker-compose /usr/local/bin/docker-compose-v2
+    
+    # Add compose command to Docker CLI plugins directory
+    mkdir -p ~/.docker/cli-plugins
+    ln -sf /usr/local/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+}
+
 # Configure Docker to run without sudo
 configure_docker_user() {
     echo "Configuring Docker to run without sudo..."
@@ -91,10 +106,19 @@ configure_docker_user() {
 # Verify installation
 verify_installation() {
     echo "Verifying installation..."
+    echo "Checking Docker..."
     if sudo docker run hello-world; then
         echo "Docker installation verified successfully!"
     else
         echo "Error: Docker verification failed!"
+        exit 1
+    fi
+
+    echo "Checking Docker Compose..."
+    if docker-compose --version; then
+        echo "Docker Compose installation verified successfully!"
+    else
+        echo "Error: Docker Compose verification failed!"
         exit 1
     fi
 }
@@ -116,6 +140,7 @@ main() {
     install_prerequisites
     setup_repository
     install_docker
+    install_docker_compose
     enable_docker_service
     configure_docker_user
     verify_installation
@@ -125,7 +150,7 @@ main() {
     echo ""
     echo "You can verify the installation after logging back in by running:"
     echo "docker --version"
-    echo "docker compose version"
+    echo "docker-compose --version"
 }
 
 # Run main function
